@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack (21) с магазином</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            min-height: 600px;
+        }
+        
+        .money-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #27ae60;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .bet-controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bet-controls input {
+            width: 80px;
+            padding: 8px;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 5px;
+            border: none;
+        }
+        
+        .bet-controls button {
+            padding: 8px 15px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .bet-controls button:hover {
+            background-color: #2980b9;
+        }
+        
+        .bet-controls button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            min-height: 120px;
+        }
+        
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: white;
+            color: black;
+            border-radius: 5px;
+            margin: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+        }
+        
+        .card.red {
+            color: red;
+        }
+        
+        .card.golden {
+            background: linear-gradient(135deg, #ffd700, #ffec80, #ffd700);
+            border: 2px solid #daa520;
+        }
+        
+        .card.diamond {
+            background: linear-gradient(135deg, #e6f8ff, #b3ecff, #e6f8ff);
+            border: 2px solid #66d9ff;
+        }
+        
+        .card.new-card {
+            animation: dealCard 0.5s ease-out;
+        }
+        
+        .card.flip {
+            animation: flipCard 0.8s ease-out;
+        }
+        
+        .card.player-last-card {
+            animation: highlightCard 1s ease-in-out;
+        }
+        
+        @keyframes dealCard {
+            0% {
+                transform: translateY(-100px) rotateY(180deg);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes flipCard {
+            0% {
+                transform: rotateY(0);
+            }
+            50% {
+                transform: rotateY(90deg);
+                background-color: #95a5a6;
+                color: transparent;
+            }
+            100% {
+                transform: rotateY(0);
+                background-color: white;
+            }
+        }
+        
+        @keyframes highlightCard {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .hidden-card {
+            background-color: #95a5a6;
+            color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hidden-card::after {
+            content: "?";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: black;
+            font-size: 24px;
+        }
+        
+        .buttons {
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            font-size: 24px;
+            margin: 20px 0;
+            min-height: 30px;
+            font-weight: bold;
+        }
+        
+        .score {
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .dealer-turn {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        /* Стили для магазина */
+        .shop-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #e67e22;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            color: white;
+        }
+        
+        .shop-button:hover {
+            background-color: #d35400;
+        }
+        
+        .shop-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .shop-content {
+            background-color: #34495e;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .close-shop {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            background: none;
+            border: none;
+        }
+        
+        .shop-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .shop-item {
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+        }
+        
+        .shop-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        
+        .shop-item button {
+            margin-top: 10px;
+            background-color: #27ae60;
+            width: 100%;
+        }
+        
+        .shop-item button:disabled {
+            background-color: #7f8c8d;
+        }
+        
+        .shop-item button:hover:not(:disabled) {
+            background-color: #2ecc71;
+        }
+        
+        .owned-badge {
+            background-color: #3498db;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        /* Стили для подсказок */
+        .hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #9b59b6;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 100;
+            border: none;
+            color: white;
+        }
+        
+        .hint:hover {
+            background-color: #8e44ad;
+        }
+        
+        .hint-popup {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background-color: #34495e;
+            padding: 15px;
+            border-radius: 5px;
+            max-width: 300px;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Анимации */
+        @keyframes coinAnimation {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+        
+        .coin-animation {
+            position: absolute;
+            font-size: 20px;
+            color: gold;
+            animation: coinAnimation 1s ease-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="money-display">Баланс: $<span id="money">1000</span></div>
+        <button class="shop-button" id="shop-button">Магазин</button>
+        
+        <h1>Blackjack (21)</h1>
+        
+        <div class="bet-controls" id="bet-controls">
+            <span>Ставка:</span>
+            <input type="number" id="bet-amount" min="10" max="1000" value="50">
+            <button id="place-bet">Поставить</button>
+        </div>
+        
+        <div class="score">Дилер: <span id="dealer-score">?</span></div>
+        <div class="cards" id="dealer-cards"></div>
+        
+        <div class="score">Игрок: <span id="player-score">0</span></div>
+        <div class="cards" id="player-cards"></div>
+        
+        <div class="status" id="status">Сделайте ставку</div>
+        
+        <div class="buttons">
+            <button id="hit-btn" disabled>Взять карту</button>
+            <button id="stand-btn" disabled>Остановиться</button>
+            <button id="double-btn" disabled>Удвоить</button>
+        </div>
+        
+        <button class="hint" id="hint-button" style="display: none;">💡 Подсказка</button>
+        <div class="hint-popup" id="hint-popup"></div>
+    </div>
+
+    <!-- Модальное окно магазина -->
+    <div class="shop-modal" id="shop-modal">
+        <div class="shop-content">
+            <button class="close-shop" id="close-shop">&times;</button>
+            <h2>Магазин улучшений</h2>
+            <p>Ваши деньги: $<span id="shop-money">1000</span></p>
+            
+            <div class="shop-items">
+                <div class="shop-item">
+                    <h3>Золотые карты</h3>
+                    <p>Стильный золотой дизайн для ваших карт</p>
+                    <p>Цена: $500</p>
+                    <button id="buy-golden-cards">Купить</button>
+                    <div class="owned-badge" id="golden-badge" style="display: none;">Куплено</div>
+                </div>
+                
+                <div class="shop-item">
+                    <h3>Алмазные карты</h3>
+                    <p>Роскошный алмазный дизайн для карт</p>
+                    <p>Цена: $1000</p>
+                    <button id="buy-diamond-cards">Купить</button>
+                    <div class="owned-badge" id="diamond-badge" style="display: none;">Куплено</div>
+                </div>
+                
+                <div class="shop-item">
+                    <h3>Подсказки</h3>
+                    <p>Получайте советы по игре (3 подсказки)</p>
+                    <p>Цена: $300</p>
+                    <button id="buy-hints">Купить</button>
+                    <div class="owned-badge" id="hints-badge" style="display: none;">Осталось: <span id="hints-left">3</span></div>
+                </div>
+                
+                <div class="shop-item">
+                    <h3>Удвоение ставки+</h3>
+                    <p>Можно удваивать ставку после взятия карт</p>
+                    <p>Цена: $700</p>
+                    <button id="buy-double-plus">Купить</button>
+                    <div class="owned-badge" id="double-badge" style="display: none;">Куплено</div>
+                </div>
+                
+                <div class="shop-item">
+                    <h3>Страховка</h3>
+                    <p>Возвращает 50% при проигрыше (3 использования)</p>
+                    <p>Цена: $400</p>
+                    <button id="buy-insurance">Купить</button>
+                    <div class="owned-badge" id="insurance-badge" style="display: none;">Осталось: <span id="insurance-left">3</span></div>
+                </div>
+                
+                <div class="shop-item">
+                    <h3>Бонус за победу</h3>
+                    <p>+10% к выигрышу (навсегда)</p>
+                    <p>Цена: $1500</p>
+                    <button id="buy-win-bonus">Купить</button>
+                    <div class="owned-badge" id="win-bonus-badge" style="display: none;">Активно</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const suits = ['♥', '♦', '♠', '♣'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            
+            let deck = [];
+            let dealerCards = [];
+            let playerCards = [];
+            let gameOver = false;
+            let currentBet = 0;
+            let money = 1000;
+            let gameStarted = false;
+            
+            // Улучшения из магазина
+            let upgrades = {
+                goldenCards: false,
+                diamondCards: false,
+                hints: 0,
+                doublePlus: false,
+                insurance: 0,
+                winBonus: false
+            };
+            
+            // Элементы интерфейса
+            const dealerCardsElement = document.getElementById('dealer-cards');
+            const playerCardsElement = document.getElementById('player-cards');
+            const dealerScoreElement = document.getElementById('dealer-score');
+            const playerScoreElement = document.getElementById('player-score');
+            const statusElement = document.getElementById('status');
+            const hitBtn = document.getElementById('hit-btn');
+            const standBtn = document.getElementById('stand-btn');
+            const doubleBtn = document.getElementById('double-btn');
+            const placeBetBtn = document.getElementById('place-bet');
+            const betAmountInput = document.getElementById('bet-amount');
+            const moneyElement = document.getElementById('money');
+            const betControlsElement = document.getElementById('bet-controls');
+            const hintButton = document.getElementById('hint-button');
+            const hintPopup = document.getElementById('hint-popup');
+            
+            // Элементы магазина
+            const shopButton = document.getElementById('shop-button');
+            const shopModal = document.getElementById('shop-modal');
+            const closeShop = document.getElementById('close-shop');
+            const shopMoney = document.getElementById('shop-money');
+            
+            // Кнопки покупки в магазине
+            const buyGoldenCards = document.getElementById('buy-golden-cards');
+            const buyDiamondCards = document.getElementById('buy-diamond-cards');
+            const buyHints = document.getElementById('buy-hints');
+            const buyDoublePlus = document.getElementById('buy-double-plus');
+            const buyInsurance = document.getElementById('buy-insurance');
+            const buyWinBonus = document.getElementById('buy-win-bonus');
+            
+            // Бейджи купленных товаров
+            const goldenBadge = document.getElementById('golden-badge');
+            const diamondBadge = document.getElementById('diamond-badge');
+            const hintsBadge = document.getElementById('hints-badge');
+            const doubleBadge = document.getElementById('double-badge');
+            const insuranceBadge = document.getElementById('insurance-badge');
+            const winBonusBadge = document.getElementById('win-bonus-badge');
+            
+            // Обновление баланса
+            function updateMoney() {
+                moneyElement.textContent = money;
+                shopMoney.textContent = money;
+            }
+            
+            // Анимация денег
+            function createCoinAnimation(x, y, amount) {
+                const coin = document.createElement('div');
+                coin.className = 'coin-animation';
+                coin.textContent = amount >= 0 ? `+$${amount}` : `-$${Math.abs(amount)}`;
+                coin.style.color = amount >= 0 ? 'gold' : 'red';
+                coin.style.left = `${x}px`;
+                coin.style.top = `${y}px`;
+                document.body.appendChild(coin);
+                
+                setTimeout(() => {
+                    coin.remove();
+                }, 1000);
+            }
+            
+            // Инициализация новой игры
+            function newGame() {
+                // Проверяем, есть ли деньги для ставки
+                if (money <= 0) {
+                    statusElement.textContent = 'У вас закончились деньги!';
+                    return;
+                }
+                
+                // Сбрасываем состояние игры
+                gameOver = false;
+                gameStarted = true;
+                
+                // Создаем новую колоду
+                deck = [];
+                for (let suit of suits) {
+                    for (let value of values) {
+                        deck.push({ suit, value });
+                    }
+                }
+                
+                // Перемешиваем колоду
+                shuffleDeck();
+                
+                // Раздаем начальные карты
+                dealerCards = [drawCard(), drawCard()];
+                playerCards = [drawCard(), drawCard()];
+                
+                // Обновляем интерфейс
+                updateUI();
+                
+                // Проверяем блекджек у игрока
+                if (calculateScore(playerCards) === 21) {
+                    setTimeout(() => {
+                        stand();
+                    }, 1000);
+                }
+            }
+            
+            // Перемешивание колоды
+            function shuffleDeck() {
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+            
+            // Взять карту из колоды
+            function drawCard() {
+                return deck.pop();
+            }
+            
+            // Расчет очков для руки
+            function calculateScore(cards) {
+                let score = 0;
+                let aces = 0;
+                
+                for (let card of cards) {
+                    if (card.value === 'A') {
+                        aces++;
+                        score += 11;
+                    } else if (['K', 'Q', 'J'].includes(card.value)) {
+                        score += 10;
+                    } else {
+                        score += parseInt(card.value);
+                    if (isNaN(score)) score = 0; // Защита от NaN
+                    }
+                }
+                
+                // Учитываем тузы как 1, если перебор
+                while (score > 21 && aces > 0) {
+                    score -= 10;
+                    aces--;
+                }
+                
+                return score;
+            }
+            
+            // Обновление интерфейса
+            function updateUI() {
+                // Очищаем карты
+                dealerCardsElement.innerHTML = '';
+                playerCardsElement.innerHTML = '';
+                
+                // Показываем карты дилера
+                dealerCards.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    
+                    // Применяем улучшения для карт
+                    if (upgrades.diamondCards) {
+                        cardElement.classList.add('diamond');
+                    } else if (upgrades.goldenCards) {
+                        cardElement.classList.add('golden');
+                    }
+                    
+                    // Первая карта дилера скрыта, если игра не окончена
+                    if (index === 0 && !gameOver) {
+                        cardElement.className += ' hidden-card';
+                    } else {
+                        if (card.suit === '♥' || card.suit === '♦') {
+                            cardElement.className += ' red';
+                        }
+                        cardElement.textContent = card.value + card.suit;
+                        
+                        // Анимация для вскрытия карты дилера
+                        if (index === 0 && gameOver) {
+                            setTimeout(() => {
+                                cardElement.classList.add('flip');
+                                setTimeout(() => {
+                                    if (card.suit === '♥' || card.suit === '♦') {
+                                        cardElement.className = 'card red';
+                                    } else {
+                                        cardElement.className = 'card';
+                                    }
+                                    // Применяем улучшения после анимации
+                                    if (upgrades.diamondCards) {
+                                        cardElement.classList.add('diamond');
+                                    } else if (upgrades.goldenCards) {
+                                        cardElement.classList.add('golden');
+                                    }
+                                    cardElement.textContent = card.value + card.suit;
+                                }, 400);
+                            }, index * 300);
+                        }
+                    }
+                    
+                    dealerCardsElement.appendChild(cardElement);
+                });
+                
+                // Показываем карты игрока
+                playerCards.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    
+                    // Применяем улучшения для карт
+                    if (upgrades.diamondCards) {
+                        cardElement.classList.add('diamond');
+                    } else if (upgrades.goldenCards) {
+                        cardElement.classList.add('golden');
+                    }
+                    
+                    if (card.suit === '♥' || card.suit === '♦') {
+                        cardElement.className += ' red';
+                    }
+                    
+                    // Анимация для новых карт
+                    if (index >= playerCards.length - 1 && gameStarted) {
+                        cardElement.classList.add('new-card');
+                    }
+                    
+                    // Анимация для последней карты игрока при вскрытии дилера
+                    if (gameOver && index === playerCards.length - 1) {
+                        setTimeout(() => {
+                            cardElement.classList.add('player-last-card');
+                        }, dealerCards.length * 300 + 500);
+                    }
+                    
+                    cardElement.textContent = card.value + card.suit;
+                    playerCardsElement.appendChild(cardElement);
+                });
+                
+                // Обновляем счет
+                if (gameOver) {
+                    dealerScoreElement.textContent = calculateScore(dealerCards);
+                } else {
+                    // Показываем только вторую карту дилера
+                    const visibleDealerScore = calculateScore([dealerCards[1]]);
+                    dealerScoreElement.textContent = '?';
+                }
+                
+                const playerScore = calculateScore(playerCards);
+                playerScoreElement.textContent = playerScore;
+                
+                // Управление кнопками
+                hitBtn.disabled = gameOver || !gameStarted;
+                standBtn.disabled = gameOver || !gameStarted;
+                
+                // Улучшение для удвоения ставки
+                if (upgrades.doublePlus) {
+                    doubleBtn.disabled = gameOver || !gameStarted || money < currentBet;
+                } else {
+                    doubleBtn.disabled = gameOver || !gameStarted || playerCards.length > 2 || money < currentBet;
+                }
+                
+                placeBetBtn.disabled = gameStarted;
+                betAmountInput.disabled = gameStarted;
+                
+                // Показываем кнопку подсказки, если есть подсказки
+                hintButton.style.display = upgrades.hints > 0 && !gameOver && gameStarted ? 'block' : 'none';
+            }
+            
+            // Взять карту
+            function hit() {
+                if (gameOver) return;
+                
+                playerCards.push(drawCard());
+                updateUI();
+                
+                const playerScore = calculateScore(playerCards);
+                if (playerScore > 21) {
+                    // Проверяем страховку
+                    if (upgrades.insurance > 0) {
+                        upgrades.insurance--;
+                        document.getElementById('insurance-left').textContent = upgrades.insurance;
+                        if (upgrades.insurance === 0) {
+                            insuranceBadge.style.display = 'none';
+                        }
+                        
+                        const refund = Math.floor(currentBet * 0.5);
+                        money -= currentBet - refund;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet + refund);
+                        statusElement.textContent = `Перебор! Страховка вернула вам $${refund}`;
+                    } else {
+                        money -= currentBet;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet);
+                        statusElement.textContent = 'Перебор! Вы проиграли $' + currentBet;
+                    }
+                    
+                    updateMoney();
+                    gameOver = true;
+                    endGame();
+                }
+            }
+            
+            // Удвоить ставку
+            function double() {
+                if (gameOver || money < currentBet) return;
+                
+                // Проверяем улучшение для удвоения
+                if (!upgrades.doublePlus && playerCards.length > 2) return;
+                
+                money -= currentBet;
+                currentBet *= 2;
+                createCoinAnimation(doubleBtn.offsetLeft, doubleBtn.offsetTop, -currentBet/2);
+                updateMoney();
+                
+                playerCards.push(drawCard());
+                updateUI();
+                
+                const playerScore = calculateScore(playerCards);
+                if (playerScore > 21) {
+                    // Проверяем страховку
+                    if (upgrades.insurance > 0) {
+                        upgrades.insurance--;
+                        document.getElementById('insurance-left').textContent = upgrades.insurance;
+                        if (upgrades.insurance === 0) {
+                            insuranceBadge.style.display = 'none';
+                        }
+                        
+                        const refund = Math.floor(currentBet * 0.5);
+                        money -= currentBet - refund;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet + refund);
+                        statusElement.textContent = `Перебор! Страховка вернула вам $${refund}`;
+                    } else {
+                        money -= currentBet;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet);
+                        statusElement.textContent = 'Перебор! Вы проиграли $' + currentBet;
+                    }
+                    
+                    updateMoney();
+                    gameOver = true;
+                    endGame();
+                } else {
+                    setTimeout(() => {
+                        stand();
+                    }, 500);
+                }
+            }
+            
+            // Остановиться
+            function stand() {
+                if (gameOver) return;
+                
+                gameOver = true;
+                statusElement.textContent = 'Дилер берет карты...';
+                statusElement.classList.add('dealer-turn');
+                updateUI();
+                
+                // Дилер берет карты, пока его счет меньше 17
+                let dealerInterval = setInterval(() => {
+                    if (calculateScore(dealerCards) < 17) {
+                        dealerCards.push(drawCard());
+                        updateUI();
+                    } else {
+                        clearInterval(dealerInterval);
+                        statusElement.classList.remove('dealer-turn');
+                        determineWinner();
+                    }
+                }, 1000);
+            }
+            
+            // Определение победителя
+            function determineWinner() {
+                const dealerScore = calculateScore(dealerCards);
+                const playerScore = calculateScore(playerCards);
+                
+                if (dealerScore > 21) {
+                    let winAmount = currentBet;
+                    if (upgrades.winBonus) {
+                        winAmount = Math.floor(winAmount * 1.1);
+                    }
+                    statusElement.textContent = 'Дилер перебрал! Вы выиграли $' + winAmount;
+                    money += currentBet + winAmount;
+                    createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, winAmount);
+                } else if (dealerScore > playerScore) {
+                    // Проверяем страховку
+                    if (upgrades.insurance > 0) {
+                        upgrades.insurance--;
+                        document.getElementById('insurance-left').textContent = upgrades.insurance;
+                        if (upgrades.insurance === 0) {
+                            insuranceBadge.style.display = 'none';
+                        }
+                        
+                        const refund = Math.floor(currentBet * 0.5);
+                        money -= currentBet - refund;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet + refund);
+                        statusElement.textContent = `Дилер выиграл. Страховка вернула вам $${refund}`;
+                    } else {
+                        money -= currentBet;
+                        createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, -currentBet);
+                        statusElement.textContent = 'Дилер выиграл. Вы проиграли $' + currentBet;
+                    }
+                } else if (playerScore > dealerScore) {
+                    let winAmount = currentBet;
+                    if (upgrades.winBonus) {
+                        winAmount = Math.floor(winAmount * 1.1);
+                    }
+                    statusElement.textContent = 'Вы выиграли $' + winAmount;
+                    money += currentBet + winAmount;
+                    createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, winAmount);
+                } else {
+                    statusElement.textContent = 'Ничья! Возврат ставки $' + currentBet;
+                    money += currentBet; // Возвращаем ставку
+                    createCoinAnimation(standBtn.offsetLeft, standBtn.offsetTop, 0);
+                }
+                
+                updateMoney();
+                endGame();
+            }
+            
+            // Завершение игры
+            function endGame() {
+                gameStarted = false;
+                updateUI();
+                
+                // Показываем кнопку для новой ставки
+                setTimeout(() => {
+                    betAmountInput.value = Math.min(50, money);
+                    betAmountInput.max = money;
+                }, 1500);
+            }
+            
+            // Размещение ставки
+            function placeBet() {
+                const betAmount = parseInt(betAmountInput.value);
+                
+                if (isNaN(betAmount)) {
+                    statusElement.textContent = 'Введите число!';
+                    return;
+                }
+                
+                if (betAmount < 10) {
+                    statusElement.textContent = 'Минимальная ставка $10!';
+                    return;
+                }
+                
+                if (betAmount > money) {
+                    statusElement.textContent = 'У вас недостаточно денег!';
+                    return;
+                }
+                
+                currentBet = betAmount;
+                statusElement.textContent = 'Игра началась! Ставка: $' + currentBet;
+                newGame();
+            }
+            
+            // Показать подсказку
+            function showHint() {
+                if (gameOver || !gameStarted || upgrades.hints <= 0) return;
+                
+                const dealerScore = calculateScore([dealerCards[1]]); // Только видимая карта дилера
+                const playerScore = calculateScore(playerCards);
+                
+                let advice = '';
+                
+                // Простая стратегия для подсказок
+                if (playerScore <= 11) {
+                    advice = 'Берите карту. У вас мало очков.';
+                } else if (playerScore >= 17) {
+                    advice = 'Остановитесь. У вас уже хороший счет.';
+                } else if (dealerScore >= 7) {
+                    advice = 'Берите карту. У дилера сильная карта.';
+                } else {
+                    advice = 'Остановитесь. У дилера слабая карта.';
+                }
+                
+                // Особые случаи
+                if (playerCards.length === 2 && playerScore === 11) {
+                    advice = 'Удвойте ставку! У вас 11 очков.';
+                } else if (playerCards.length === 2 && playerScore === 10 && dealerScore < 10) {
+                    advice = 'Удвойте ставку! Хорошая возможность.';
+                } else if (playerScore === 12 && dealerScore >= 4 && dealerScore <= 6) {
+                    advice = 'Остановитесь. Дилер может перебрать.';
+                }
+                
+                hintPopup.textContent = advice;
+                hintPopup.style.display = 'block';
+                
+                // Уменьшаем количество подсказок
+                upgrades.hints--;
+                document.getElementById('hints-left').textContent = upgrades.hints;
+                
+                if (upgrades.hints === 0) {
+                    hintsBadge.style.display = 'none';
+                    hintButton.style.display = 'none';
+                }
+                
+                // Скрываем подсказку через 5 секунд
+                setTimeout(() => {
+                    hintPopup.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Покупка улучшений
+            function buyUpgrade(upgradeName, price) {
+                if (money < price) {
+                    alert('Недостаточно денег!');
+                    return false;
+                }
+                
+                money -= price;
+                updateMoney();
+                createCoinAnimation(shopButton.offsetLeft, shopButton.offsetTop, -price);
+                
+                switch (upgradeName) {
+                    case 'goldenCards':
+                        upgrades.goldenCards = true;
+                        goldenBadge.style.display = 'inline-block';
+                        buyGoldenCards.disabled = true;
+                        break;
+                    case 'diamondCards':
+                        upgrades.diamondCards = true;
+                        diamondBadge.style.display = 'inline-block';
+                        buyDiamondCards.disabled = true;
+                        // Если покупаем алмазные, отключаем золотые
+                        if (upgrades.goldenCards) {
+                            upgrades.goldenCards = false;
+                            goldenBadge.style.display = 'none';
+                            buyGoldenCards.disabled = false;
+                        }
+                        break;
+                    case 'hints':
+                        upgrades.hints += 3;
+                        hintsBadge.style.display = 'inline-block';
+                        document.getElementById('hints-left').textContent = upgrades.hints;
+                        break;
+                    case 'doublePlus':
+                        upgrades.doublePlus = true;
+                        doubleBadge.style.display = 'inline-block';
+                        buyDoublePlus.disabled = true;
+                        break;
+                    case 'insurance':
+                        upgrades.insurance += 3;
+                        insuranceBadge.style.display = 'inline-block';
+                        document.getElementById('insurance-left').textContent = upgrades.insurance;
+                        break;
+                    case 'winBonus':
+                        upgrades.winBonus = true;
+                        winBonusBadge.style.display = 'inline-block';
+                        buyWinBonus.disabled = true;
+                        break;
+                }
+                
+                return true;
+            }
+            
+            // Обработчики событий
+            hitBtn.addEventListener('click', hit);
+            standBtn.addEventListener('click', stand);
+            doubleBtn.addEventListener('click', double);
+            placeBetBtn.addEventListener('click', placeBet);
+            hintButton.addEventListener('click', showHint);
+            
+            // Магазин
+            shopButton.addEventListener('click', function() {
+                shopModal.style.display = 'block';
+            });
+            
+            closeShop.addEventListener('click', function() {
+                shopModal.style.display = 'none';
+            });
+            
+            // Покупки в магазине
+            buyGoldenCards.addEventListener('click', function() {
+                buyUpgrade('goldenCards', 500);
+            });
+            
+            buyDiamondCards.addEventListener('click', function() {
+                buyUpgrade('diamondCards', 1000);
+            });
+            
+            buyHints.addEventListener('click', function() {
+                buyUpgrade('hints', 300);
+            });
+            
+            buyDoublePlus.addEventListener('click', function() {
+                buyUpgrade('doublePlus', 700);
+            });
+            
+            buyInsurance.addEventListener('click', function() {
+                buyUpgrade('insurance', 400);
+            });
+            
+            buyWinBonus.addEventListener('click', function() {
+                buyUpgrade('winBonus', 1500);
+            });
+            
+            // Закрытие магазина при клике вне его
+            window.addEventListener('click', function(event) {
+                if (event.target === shopModal) {
+                    shopModal.style.display = 'none';
+                }
+            });
+            
+            betAmountInput.addEventListener('input', function() {
+                const betAmount = parseInt(this.value);
+                if (isNaN(betAmount)) {
+                    this.value = 10;
+                    return;
+                }
+                
+                if (betAmount > money) {
+                    this.value = money;
+                } else if (betAmount < 10) {
+                    this.value = 10;
+                }
+            });
+            
+            // Инициализация
+            updateMoney();
+            betAmountInput.max = money;
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Blackjack</title>
+    <title>Blackjack</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -413,7 +413,39 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
-        .shop-modal {
+        /* Финансы */
+        .finance-button {
+            position: absolute;
+            top: 20px;
+            left: 160px;
+            background-color: #9b59b6;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .finance-button::before {
+            content: '💵';
+            margin-right: 8px;
+            font-size: 20px;
+        }
+        
+        .finance-button:hover {
+            background-color: #8e44ad;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Модальные окна */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -426,18 +458,18 @@
             animation: fadeIn 0.3s ease;
         }
         
-        .shop-content {
+        .modal-content {
             background-color: var(--secondary);
             margin: 50px auto;
             padding: 30px;
             border-radius: 15px;
-            max-width: 900px;
+            max-width: 600px;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .close-shop {
+        .close-modal {
             position: absolute;
             top: 15px;
             right: 15px;
@@ -455,85 +487,80 @@
             transition: all 0.3s;
         }
         
-        .close-shop:hover {
+        .close-modal:hover {
             background-color: rgba(255, 255, 255, 0.1);
             transform: rotate(90deg);
         }
         
-        .shop-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+        .modal-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .shop-item {
-            background-color: var(--primary);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
+        .modal-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
             transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .shop-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            border-color: var(--accent);
-        }
-        
-        .shop-item h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
+        .modal-tab.active {
+            border-bottom: 3px solid var(--accent);
             color: var(--accent);
         }
         
-        .shop-item p {
-            font-size: 14px;
-            margin-bottom: 15px;
-            color: rgba(255, 255, 255, 0.8);
+        .modal-tab:hover:not(.active) {
+            border-bottom: 3px solid rgba(52, 152, 219, 0.5);
         }
         
-        .shop-item .price {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--gold);
-            margin-bottom: 15px;
+        .tab-content {
+            display: none;
         }
         
-        .shop-item button {
+        .tab-content.active {
+            display: block;
+        }
+        
+        .finance-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .finance-controls input {
             width: 100%;
             padding: 12px;
             font-size: 16px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            background-color: rgba(255, 255, 255, 0.9);
             font-weight: bold;
-            background-color: var(--success);
-            color: white;
-            border: none;
+            transition: all 0.3s;
+        }
+        
+        .finance-controls button {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 10px;
+            border: none;
         }
         
-        .shop-item button:hover:not(:disabled) {
-            background-color: #2ecc71;
+        .finance-controls button:hover:not(:disabled) {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .shop-item button:disabled {
-            background-color: #7f8c8d;
-            cursor: not-allowed;
-        }
-        
-        .owned-badge {
-            background-color: var(--accent);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-top: 15px;
-            display: inline-block;
-            font-weight: bold;
+        .finance-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.3);
         }
         
         /* Подсказки */
@@ -639,6 +666,11 @@
             .shop-items {
                 grid-template-columns: 1fr;
             }
+            
+            .finance-button {
+                left: 20px;
+                top: 70px;
+            }
         }
     </style>
 </head>
@@ -646,12 +678,13 @@
     <div class="game-container">
         <div class="money-display">Баланс: $<span id="money">1000</span></div>
         <button class="shop-button" id="shop-button">Магазин</button>
+        <button class="finance-button" id="finance-button">Финансы</button>
         
-        <h1>Premium Blackjack</h1>
+        <h1>Blackjack</h1>
         
         <div class="bet-controls" id="bet-controls">
             <span>Ставка:</span>
-            <input type="number" id="bet-amount" min="10" max="1000" value="50">
+            <input type="number" id="bet-amount" min="10" max="1000" value="50" step="10">
             <button id="place-bet">Поставить</button>
         </div>
         
@@ -684,9 +717,9 @@
     </div>
 
     <!-- Модальное окно магазина -->
-    <div class="shop-modal" id="shop-modal">
-        <div class="shop-content">
-            <button class="close-shop" id="close-shop">&times;</button>
+    <div class="modal" id="shop-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-shop">&times;</button>
             <h2>Магазин улучшений</h2>
             <p>Ваши деньги: $<span id="shop-money">1000</span></p>
             
@@ -742,6 +775,62 @@
         </div>
     </div>
 
+    <!-- Модальное окно финансов -->
+    <div class="modal" id="finance-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-finance">&times;</button>
+            <h2>Финансовые операции</h2>
+            <p>Ваши деньги: $<span id="finance-money">1000</span></p>
+            
+            <div class="modal-tabs">
+                <div class="modal-tab active" data-tab="bank">Банк</div>
+                <div class="modal-tab" data-tab="loans">Кредиты</div>
+                <div class="modal-tab" data-tab="investments">Инвестиции</div>
+            </div>
+            
+            <!-- Вкладка Банк -->
+            <div class="tab-content active" id="bank-tab">
+                <p>Положите деньги в банк под 5% за каждую игру</p>
+                <div class="finance-info" id="bank-info">
+                    В банке: $0<br>
+                    Проценты: 5% за игру
+                </div>
+                <div class="finance-controls">
+                    <input type="number" id="bank-amount" min="0" placeholder="Сумма">
+                    <button id="deposit-btn" style="background-color: var(--success); color: white;">Положить</button>
+                    <button id="withdraw-btn" style="background-color: var(--danger); color: white;">Снять</button>
+                </div>
+            </div>
+            
+            <!-- Вкладка Кредиты -->
+            <div class="tab-content" id="loans-tab">
+                <p>Возьмите кредит под 10% за каждую игру</p>
+                <div class="finance-info" id="loan-info">
+                    Кредит: $0<br>
+                    Проценты: 10% за игру
+                </div>
+                <div class="finance-controls">
+                    <input type="number" id="loan-amount" min="0" placeholder="Сумма">
+                    <button id="take-loan-btn" style="background-color: var(--success); color: white;">Взять</button>
+                    <button id="repay-loan-btn" style="background-color: var(--danger); color: white;">Вернуть</button>
+                </div>
+            </div>
+            
+            <!-- Вкладка Инвестиции -->
+            <div class="tab-content" id="investments-tab">
+                <p>Рискованные инвестиции с возможностью большого дохода или потери</p>
+                <div class="finance-info" id="investment-info">
+                    Доходность: от -50% до +200%<br>
+                    Шанс успеха: 60%
+                </div>
+                <div class="finance-controls">
+                    <input type="number" id="investment-amount" min="0" placeholder="Сумма">
+                    <button id="invest-btn" style="background-color: var(--warning); color: white;">Инвестировать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Константы для мастей и значений карт
@@ -752,10 +841,14 @@
             let deck = [];
             let dealerCards = [];
             let playerCards = [];
-            let gameOver = true; // Начинаем с true, чтобы игра начиналась с размещения ставки
+            let gameOver = true;
             let currentBet = 0;
             let money = 1000;
             let gameStarted = false;
+            
+            // Финансовые переменные
+            let bankBalance = 0;
+            let loanBalance = 0;
             
             // Улучшения из магазина
             let upgrades = {
@@ -804,10 +897,62 @@
             const insuranceBadge = document.getElementById('insurance-badge');
             const winBonusBadge = document.getElementById('win-bonus-badge');
             
+            // Элементы финансов
+            const financeButton = document.getElementById('finance-button');
+            const financeModal = document.getElementById('finance-modal');
+            const closeFinance = document.getElementById('close-finance');
+            const financeMoney = document.getElementById('finance-money');
+            
+            // Банк
+            const bankInfo = document.getElementById('bank-info');
+            const bankAmount = document.getElementById('bank-amount');
+            const depositBtn = document.getElementById('deposit-btn');
+            const withdrawBtn = document.getElementById('withdraw-btn');
+            
+            // Кредиты
+            const loanInfo = document.getElementById('loan-info');
+            const loanAmount = document.getElementById('loan-amount');
+            const takeLoanBtn = document.getElementById('take-loan-btn');
+            const repayLoanBtn = document.getElementById('repay-loan-btn');
+            
+            // Инвестиции
+            const investmentInfo = document.getElementById('investment-info');
+            const investmentAmount = document.getElementById('investment-amount');
+            const investBtn = document.getElementById('invest-btn');
+            
             // Функция обновления баланса
             function updateMoney() {
                 moneyElement.textContent = money;
-                if (shopMoney) shopMoney.textContent = money;
+                shopMoney.textContent = money;
+                financeMoney.textContent = money;
+                updateBankInfo();
+                updateLoanInfo();
+            }
+            
+            // Функция обновления информации о банке
+            function updateBankInfo() {
+                bankInfo.innerHTML = `В банке: $${bankBalance}<br>Проценты: 5% за игру`;
+            }
+            
+            // Функция обновления информации о кредите
+            function updateLoanInfo() {
+                loanInfo.innerHTML = `Кредит: $${loanBalance}<br>Проценты: 10% за игру`;
+            }
+            
+            // Функция изменения ставки с клавиатуры
+            function adjustBet(amount) {
+                if (gameStarted) return;
+                
+                const currentValue = parseInt(betAmountInput.value) || 0;
+                let newValue = currentValue + amount;
+                
+                // Проверяем границы
+                newValue = Math.max(10, Math.min(newValue, money));
+                
+                // Убедимся, что ставка кратна 10
+                newValue = Math.floor(newValue / 10) * 10;
+                
+                betAmountInput.value = newValue;
             }
             
             // Функция создания новой игры
@@ -1082,6 +1227,26 @@
                     money += currentBet;
                 }
                 
+                // Начисляем проценты по банку и кредиту
+                if (bankBalance > 0) {
+                    const interest = Math.floor(bankBalance * 0.05);
+                    bankBalance += interest;
+                    statusElement.textContent += ` (+${interest}$ в банке)`;
+                }
+                
+                if (loanBalance > 0) {
+                    const interest = Math.floor(loanBalance * 0.1);
+                    loanBalance += interest;
+                    statusElement.textContent += ` (-${interest}$ по кредиту)`;
+                    
+                    // Автоматическое погашение кредита, если есть деньги
+                    if (money >= loanBalance) {
+                        money -= loanBalance;
+                        loanBalance = 0;
+                        statusElement.textContent += ' (Кредит погашен)';
+                    }
+                }
+                
                 updateMoney();
                 endGame();
             }
@@ -1231,13 +1396,6 @@
                     shopModal.style.display = 'none';
                 });
                 
-                // Закрытие магазина при клике вне его
-                window.addEventListener('click', function(event) {
-                    if (event.target === shopModal) {
-                        shopModal.style.display = 'none';
-                    }
-                });
-                
                 // Обработчики для кнопок покупки
                 buyGoldenCards.addEventListener('click', function() {
                     buyUpgrade('goldenCards', 500);
@@ -1264,6 +1422,160 @@
                 });
             }
             
+            // Функция настройки финансов
+            function setupFinance() {
+                financeButton.addEventListener('click', function() {
+                    financeModal.style.display = 'block';
+                });
+                
+                closeFinance.addEventListener('click', function() {
+                    financeModal.style.display = 'none';
+                });
+                
+                // Переключение вкладок
+                const tabs = document.querySelectorAll('.modal-tab');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Убираем активный класс у всех вкладок
+                        tabs.forEach(t => t.classList.remove('active'));
+                        // Добавляем активный класс текущей вкладке
+                        this.classList.add('active');
+                        
+                        // Скрываем все содержимое вкладок
+                        document.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        
+                        // Показываем содержимое текущей вкладки
+                        const tabId = this.getAttribute('data-tab');
+                        document.getElementById(`${tabId}-tab`).classList.add('active');
+                    });
+                });
+                
+                // Банк: положить деньги
+                depositBtn.addEventListener('click', function() {
+                    const amount = parseInt(bankAmount.value);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Введите корректную сумму!');
+                        return;
+                    }
+                    
+                    if (amount > money) {
+                        alert('У вас недостаточно денег!');
+                        return;
+                    }
+                    
+                    money -= amount;
+                    bankBalance += amount;
+                    updateMoney();
+                    bankAmount.value = '';
+                    alert(`Вы положили $${amount} в банк`);
+                });
+                
+                // Банк: снять деньги
+                withdrawBtn.addEventListener('click', function() {
+                    const amount = parseInt(bankAmount.value);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Введите корректную сумму!');
+                        return;
+                    }
+                    
+                    if (amount > bankBalance) {
+                        alert('У вас недостаточно средств в банке!');
+                        return;
+                    }
+                    
+                    money += amount;
+                    bankBalance -= amount;
+                    updateMoney();
+                    bankAmount.value = '';
+                    alert(`Вы сняли $${amount} из банка`);
+                });
+                
+                // Кредиты: взять кредит
+                takeLoanBtn.addEventListener('click', function() {
+                    const amount = parseInt(loanAmount.value);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Введите корректную сумму!');
+                        return;
+                    }
+                    
+                    if (loanBalance > 0) {
+                        alert('У вас уже есть кредит! Сначала погасите текущий.');
+                        return;
+                    }
+                    
+                    money += amount;
+                    loanBalance += amount;
+                    updateMoney();
+                    loanAmount.value = '';
+                    alert(`Вы взяли кредит $${amount} под 10% за игру`);
+                });
+                
+                // Кредиты: вернуть кредит
+                repayLoanBtn.addEventListener('click', function() {
+                    const amount = parseInt(loanAmount.value);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Введите корректную сумму!');
+                        return;
+                    }
+                    
+                    if (amount > loanBalance) {
+                        alert('Вы пытаетесь вернуть больше, чем должны!');
+                        return;
+                    }
+                    
+                    if (amount > money) {
+                        alert('У вас недостаточно денег для погашения!');
+                        return;
+                    }
+                    
+                    money -= amount;
+                    loanBalance -= amount;
+                    updateMoney();
+                    loanAmount.value = '';
+                    alert(`Вы вернули $${amount} по кредиту`);
+                });
+                
+                // Инвестиции
+                investBtn.addEventListener('click', function() {
+                    const amount = parseInt(investmentAmount.value);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('Введите корректную сумму!');
+                        return;
+                    }
+                    
+                    if (amount > money) {
+                        alert('У вас недостаточно денег для инвестиций!');
+                        return;
+                    }
+                    
+                    money -= amount;
+                    updateMoney();
+                    
+                    // 60% шанс на успех
+                    const isSuccess = Math.random() < 0.6;
+                    let result;
+                    
+                    if (isSuccess) {
+                        // Доходность от 0% до 200%
+                        const multiplier = 1 + Math.random() * 2; // От 1 до 3 (0% до 200%)
+                        const profit = Math.floor(amount * multiplier) - amount;
+                        money += amount + profit;
+                        result = `Успех! Вы получили $${profit} прибыли (${Math.floor((multiplier - 1) * 100)}%)`;
+                    } else {
+                        // Потеря от 0% до 50%
+                        const loss = Math.floor(amount * Math.random() * 0.5); // До 50%
+                        money += amount - loss;
+                        result = `Неудача! Вы потеряли $${loss} (${Math.floor(loss / amount * 100)}%)`;
+                    }
+                    
+                    updateMoney();
+                    investmentAmount.value = '';
+                    alert(result);
+                });
+            }
+            
             // Инициализация игры
             function init() {
                 updateMoney();
@@ -1276,12 +1588,13 @@
                 placeBetBtn.addEventListener('click', placeBet);
                 
                 // Назначаем обработчик для подсказки
-                if (hintButton) {
-                    hintButton.addEventListener('click', showHint);
-                }
+                hintButton.addEventListener('click', showHint);
                 
                 // Настраиваем магазин
                 setupShop();
+                
+                // Настраиваем финансы
+                setupFinance();
                 
                 // Обработчик изменения суммы ставки
                 betAmountInput.addEventListener('input', function() {
@@ -1295,6 +1608,38 @@
                         this.value = money;
                     } else if (betAmount < 10) {
                         this.value = 10;
+                    }
+                });
+                
+                // Обработчики клавиатуры для изменения ставки
+                document.addEventListener('keydown', function(event) {
+                    if (gameStarted) return; // Не позволяем менять ставку во время игры
+                    
+                    switch (event.key) {
+                        case 'ArrowUp':
+                        case '+':
+                            adjustBet(10);
+                            event.preventDefault();
+                            break;
+                        case 'ArrowDown':
+                        case '-':
+                            adjustBet(-10);
+                            event.preventDefault();
+                            break;
+                        case 'Enter':
+                            placeBet();
+                            event.preventDefault();
+                            break;
+                    }
+                });
+                
+                // Закрытие модальных окон при клике вне их
+                window.addEventListener('click', function(event) {
+                    if (event.target === shopModal) {
+                        shopModal.style.display = 'none';
+                    }
+                    if (event.target === financeModal) {
+                        financeModal.style.display = 'none';
                     }
                 });
             }

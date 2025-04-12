@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackjack</title>
+    <title>Premium Blackjack</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -672,6 +672,71 @@
                 top: 70px;
             }
         }
+        
+        /* Стили для магазина */
+        .shop-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .shop-item {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .shop-item h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .shop-item p {
+            margin-bottom: 15px;
+            color: var(--light);
+            font-size: 14px;
+        }
+        
+        .price {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+        
+        .shop-item button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .shop-item button:hover:not(:disabled) {
+            background-color: #219653;
+            transform: translateY(-2px);
+        }
+        
+        .shop-item button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .owned-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--success);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -680,7 +745,7 @@
         <button class="shop-button" id="shop-button">Магазин</button>
         <button class="finance-button" id="finance-button">Финансы</button>
         
-        <h1>Blackjack</h1>
+        <h1>Premium Blackjack</h1>
         
         <div class="bet-controls" id="bet-controls">
             <span>Ставка:</span>
@@ -920,6 +985,70 @@
             const investmentAmount = document.getElementById('investment-amount');
             const investBtn = document.getElementById('invest-btn');
             
+            // Загрузка данных из LocalStorage
+            function loadGameData() {
+                const savedData = localStorage.getItem('blackjackSave');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        
+                        money = data.money || 1000;
+                        bankBalance = data.bankBalance || 0;
+                        loanBalance = data.loanBalance || 0;
+                        upgrades = data.upgrades || {
+                            goldenCards: false,
+                            diamondCards: false,
+                            hints: 0,
+                            doublePlus: false,
+                            insurance: 0,
+                            winBonus: false
+                        };
+                        
+                        // Обновляем UI для улучшений
+                        if (upgrades.goldenCards) {
+                            goldenBadge.style.display = 'inline-block';
+                            buyGoldenCards.disabled = true;
+                        }
+                        if (upgrades.diamondCards) {
+                            diamondBadge.style.display = 'inline-block';
+                            buyDiamondCards.disabled = true;
+                        }
+                        if (upgrades.hints > 0) {
+                            hintsBadge.style.display = 'inline-block';
+                            document.getElementById('hints-left').textContent = upgrades.hints;
+                        }
+                        if (upgrades.doublePlus) {
+                            doubleBadge.style.display = 'inline-block';
+                            buyDoublePlus.disabled = true;
+                        }
+                        if (upgrades.insurance > 0) {
+                            insuranceBadge.style.display = 'inline-block';
+                            document.getElementById('insurance-left').textContent = upgrades.insurance;
+                        }
+                        if (upgrades.winBonus) {
+                            winBonusBadge.style.display = 'inline-block';
+                            buyWinBonus.disabled = true;
+                        }
+                        
+                        updateMoney();
+                    } catch (e) {
+                        console.error('Ошибка загрузки сохранения:', e);
+                    }
+                }
+            }
+            
+            // Сохранение данных в LocalStorage
+            function saveGameData() {
+                const gameData = {
+                    money,
+                    bankBalance,
+                    loanBalance,
+                    upgrades
+                };
+                
+                localStorage.setItem('blackjackSave', JSON.stringify(gameData));
+            }
+            
             // Функция обновления баланса
             function updateMoney() {
                 moneyElement.textContent = money;
@@ -927,6 +1056,9 @@
                 financeMoney.textContent = money;
                 updateBankInfo();
                 updateLoanInfo();
+                
+                // Сохраняем данные при каждом изменении
+                saveGameData();
             }
             
             // Функция обновления информации о банке
@@ -1190,6 +1322,7 @@
                     const refund = Math.floor(currentBet * 0.5);
                     money -= currentBet - refund;
                     statusElement.textContent = `Перебор! Страховка вернула вам $${refund}`;
+                    saveGameData();
                 } else {
                     money -= currentBet;
                     statusElement.textContent = 'Перебор! Вы проиграли $' + currentBet;
@@ -1231,6 +1364,7 @@
                 if (bankBalance > 0) {
                     const interest = Math.floor(bankBalance * 0.05);
                     bankBalance += interest;
+                    money += interest; // Добавляем проценты к общему балансу
                     statusElement.textContent += ` (+${interest}$ в банке)`;
                 }
                 
@@ -1328,6 +1462,8 @@
                     hintButton.style.display = 'none';
                 }
                 
+                saveGameData();
+                
                 // Скрываем подсказку через 5 секунд
                 setTimeout(() => {
                     hintPopup.style.display = 'none';
@@ -1383,6 +1519,7 @@
                         break;
                 }
                 
+                saveGameData();
                 return true;
             }
             
@@ -1578,6 +1715,9 @@
             
             // Инициализация игры
             function init() {
+                // Загружаем сохраненные данные
+                loadGameData();
+                
                 updateMoney();
                 betAmountInput.max = money;
                 
@@ -1650,3 +1790,4 @@
     </script>
 </body>
 </html>
+
